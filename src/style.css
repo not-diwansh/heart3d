@@ -8,6 +8,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html,
 body,
 #scene {
@@ -33,11 +37,184 @@ body {
   cursor: grabbing;
 }
 
+.fullscreen-toggle {
+  position: fixed;
+  z-index: 4;
+  top: 14px;
+  left: 14px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(18, 18, 18, 0.72);
+  color: #dedad5;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.fullscreen-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(32, 32, 32, 0.9);
+}
+
+.fullscreen-toggle:focus-visible,
+.organ-option input:focus-visible + .checkbox-mark {
+  outline: 2px solid rgba(255, 255, 255, 0.75);
+  outline-offset: 3px;
+}
+
+.fullscreen-toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.fullscreen-collapse,
+.fullscreen-toggle[aria-pressed='true'] .fullscreen-expand {
+  display: none;
+}
+
+.fullscreen-toggle[aria-pressed='true'] .fullscreen-collapse {
+  display: block;
+}
+
+.organ-selector {
+  position: fixed;
+  z-index: 3;
+  top: 50%;
+  right: clamp(14px, 3vw, 40px);
+  width: 178px;
+  max-height: calc(100dvh - 32px);
+  padding: 13px 10px 10px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  background: rgba(15, 15, 15, 0.78);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(14px);
+  transform: translateY(-50%);
+}
+
+.organ-selector h2 {
+  margin: 0 8px 9px;
+  color: #817d78;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.organ-list {
+  display: grid;
+  gap: 2px;
+}
+
+.organ-option {
+  position: relative;
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  color: #9e9993;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease;
+  user-select: none;
+}
+
+.organ-option:hover {
+  background: rgba(255, 255, 255, 0.045);
+  color: #e7e2dc;
+}
+
+.organ-option:has(input:checked) {
+  background: rgba(255, 255, 255, 0.065);
+  color: #f1ede8;
+}
+
+.organ-option input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.organ-icon {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  color: #78736e;
+  place-items: center;
+  transition: color 150ms ease;
+}
+
+.organ-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.organ-option:hover .organ-icon,
+.organ-option:has(input:checked) .organ-icon {
+  color: #c8c1ba;
+}
+
+.checkbox-mark {
+  position: relative;
+  display: block;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  border: 1px solid #5e5a56;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.organ-option input:checked + .checkbox-mark {
+  border-color: #d6d0c9;
+  background: #d6d0c9;
+}
+
+.organ-option input:checked + .checkbox-mark::after {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  width: 4px;
+  height: 7px;
+  border: solid #181818;
+  border-width: 0 1.5px 1.5px 0;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.organ-status {
+  margin: 8px 8px 1px;
+  color: #a8a19a;
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
 .part-info {
   position: fixed;
   z-index: 2;
-  left: clamp(16px, 4vw, 48px);
   bottom: clamp(16px, 4vw, 48px);
+  left: clamp(16px, 4vw, 48px);
   width: min(370px, calc(100vw - 32px));
   padding: 22px 24px 24px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -85,6 +262,34 @@ body {
 }
 
 @media (max-width: 600px) {
+  .fullscreen-toggle {
+    top: 12px;
+    left: 12px;
+  }
+
+  .organ-selector {
+    right: 12px;
+    width: 154px;
+    padding: 11px 8px 8px;
+  }
+
+  .organ-option {
+    min-height: 32px;
+    gap: 6px;
+    padding: 6px;
+    font-size: 0.8rem;
+  }
+
+  .organ-icon,
+  .organ-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .organ-icon {
+    flex-basis: 14px;
+  }
+
   .part-info {
     right: 16px;
     bottom: 16px;
@@ -94,7 +299,27 @@ body {
   }
 }
 
+@media (max-width: 360px) {
+  .organ-selector {
+    width: 140px;
+  }
+}
+
+@media (max-height: 620px) and (min-width: 601px) {
+  .organ-selector {
+    top: 58px;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .fullscreen-toggle,
+  .organ-option,
+  .organ-icon,
+  .checkbox-mark {
+    transition: none;
+  }
+
   .part-info {
     animation: none;
   }
