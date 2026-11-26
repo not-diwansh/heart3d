@@ -203,13 +203,6 @@ body {
   transform: rotate(45deg);
 }
 
-.organ-status {
-  margin: 8px 8px 1px;
-  color: #a8a19a;
-  font-size: 0.7rem;
-  line-height: 1.4;
-}
-
 .part-info {
   position: fixed;
   z-index: 2;

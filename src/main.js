@@ -11,7 +11,6 @@ const partInfo = document.querySelector('#part-info');
 const partName = document.querySelector('#part-name');
 const partDescription = document.querySelector('#part-description');
 const organList = document.querySelector('#organ-list');
-const organStatus = document.querySelector('#organ-status');
 const fullscreenToggle = document.querySelector('#fullscreen-toggle');
 
 const organDefinitions = {
@@ -297,6 +296,7 @@ function prepareModel(gltf, definition, key) {
   model.position.sub(scaledCenter);
 
   const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+  const preparedMaterials = new Set();
   let textureCanvas = null;
   let textureContext = null;
   let textureFlipY = false;
@@ -317,6 +317,9 @@ function prepareModel(gltf, definition, key) {
 
     const materials = Array.isArray(object.material) ? object.material : [object.material];
     materials.forEach((material) => {
+      if (preparedMaterials.has(material)) return;
+      preparedMaterials.add(material);
+
       if (material.color) material.color.multiplyScalar(0.52);
       if ('metalness' in material) material.metalness = 0.48;
       if ('roughness' in material) material.roughness = 0.2;
@@ -429,7 +432,6 @@ function showOrgan(key, organ) {
   displayedOrganKey = key;
   activeReveal = reducedMotion ? 1 : 0;
   organPivot.visible = true;
-  organStatus.hidden = true;
   resize();
 
   const definition = organDefinitions[key];
@@ -445,15 +447,11 @@ async function selectOrgan(key) {
   const definition = organDefinitions[key];
   if (!definition) return;
 
+  const previousKey = displayedOrganKey;
   const version = ++selectionVersion;
   requestedOrganKey = key;
   updateOrganCheckboxes(key);
   hidePart();
-  setEmptyView();
-  resetView();
-
-  organStatus.textContent = `Loading ${definition.label.toLowerCase()}…`;
-  organStatus.hidden = false;
 
   try {
     const organ = await loadOrgan(key, definition);
@@ -461,11 +459,14 @@ async function selectOrgan(key) {
       if (requestedOrganKey !== key) disposeOrgan(organ);
       return;
     }
+    resetView();
     showOrgan(key, organ);
   } catch (error) {
     if (version !== selectionVersion) return;
     console.error(`Unable to load ${definition.label}.`, error);
-    organStatus.textContent = `Unable to load ${definition.label.toLowerCase()}.`;
+    requestedOrganKey = previousKey;
+    updateOrganCheckboxes(previousKey);
+    if (!previousKey) setEmptyView();
   }
 }
 
@@ -475,7 +476,6 @@ function clearOrgan() {
   updateOrganCheckboxes(null);
   setEmptyView();
   hidePart();
-  organStatus.hidden = true;
 }
 
 organList.addEventListener('change', (event) => {
@@ -694,7 +694,7 @@ void selectOrgan('heart');
 
 const clock = new THREE.Clock();
 
-renderer.setAnimationLoop(() => {
+function animate() {
   const delta = Math.min(clock.getDelta(), 0.05);
   const elapsed = clock.elapsedTime;
   activeReveal = Math.min(1, activeReveal + delta * 1.6);
@@ -714,4 +714,10 @@ renderer.setAnimationLoop(() => {
 
   controls.update(delta);
   renderer.render(scene, camera);
+}
+
+renderer.setAnimationLoop(animate);
+
+document.addEventListener('visibilitychange', () => {
+  renderer.setAnimationLoop(document.hidden ? null : animate);
 });
