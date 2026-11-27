@@ -276,7 +276,7 @@ let preloadVersion = 0;
 let modelTransition = null;
 
 const organKeys = Object.keys(organDefinitions);
-const autoSwitchDelay = 20000;
+const autoSwitchDelay = 12000;
 const transitionDuration = reducedMotion ? 0.01 : 0.9;
 
 controls.addEventListener('start', () => {
@@ -1056,8 +1056,8 @@ function animate() {
     if (progress >= 1) completeModelTransition();
   }
 
-  if (!reducedMotion && activeOrgan && partInfo.hidden && !isInteracting) {
-    organPivot.rotation.y += delta * 0.12;
+  if (!reducedMotion && activeOrgan && !isInteracting) {
+    organPivot.rotation.y += delta * 0.08;
     organPivot.position.y = Math.sin(elapsed * 0.9) * 0.035;
   }
 
