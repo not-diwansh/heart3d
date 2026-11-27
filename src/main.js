@@ -10,6 +10,10 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matc
 const partInfo = document.querySelector('#part-info');
 const partName = document.querySelector('#part-name');
 const partDescription = document.querySelector('#part-description');
+const annotationLayer = document.querySelector('#annotation-layer');
+const annotationPath = document.querySelector('#annotation-path');
+const annotationPoint = document.querySelector('#annotation-point');
+const annotationClose = document.querySelector('#annotation-close');
 const organList = document.querySelector('#organ-list');
 const fullscreenToggle = document.querySelector('#fullscreen-toggle');
 
@@ -17,52 +21,52 @@ const organDefinitions = {
   heart: {
     label: 'Heart',
     file: '/heart.glb',
-    description: 'A muscular organ that pumps blood through the circulatory system. Click a region to identify its anatomy.',
+    description: 'A muscular organ with four chambers that pumps blood through pulmonary and systemic circulation. Click a region to identify its anatomy.',
   },
   maleAnatomy: {
     label: 'Male anatomy',
     file: '/models/male-anatomy.glb',
-    description: 'A full male body model showing major anatomical systems, internal organs, and sensory structures.',
+    description: 'A full male body model showing major bones, muscles, internal organs, and sensory structures. Click a visible structure to see its name.',
   },
   femaleAnatomy: {
     label: 'Female anatomy',
     file: '/models/female-anatomy.glb',
-    description: 'A full female body model showing major anatomical systems, internal organs, and reproductive structures.',
+    description: 'A full female body model showing major bones, muscles, internal organs, and reproductive structures. Click a visible structure to see its name.',
   },
   brain: {
     label: 'Brain',
     file: '/models/brain.glb',
-    description: 'The control center of the nervous system, responsible for thought, memory, emotion, movement, and sensory processing.',
+    description: 'Part of the central nervous system. It coordinates thought, memory, emotion, movement, sensory processing, and many automatic body functions.',
   },
   skull: {
     label: 'Skull',
     file: '/models/skull.glb',
-    description: 'The bony structure that encloses and protects the brain and supports the structures of the face.',
+    description: 'The bones of the cranium and face. The cranium encloses and protects the brain, while the facial bones support the face and jaw.',
   },
   stomach: {
     label: 'Stomach',
     file: '/models/stomach.glb',
-    description: 'A muscular digestive organ that stores food, mixes it with gastric acid, and begins protein digestion.',
+    description: 'A muscular sac that stores food and mixes it with acid and enzymes. It begins protein digestion and releases the resulting mixture, called chyme, into the small intestine.',
   },
   liverMale: {
     label: 'Liver (male)',
     file: '/models/liver-male.glb',
-    description: 'The largest gland in the body. This male model shows the liver lobes, surfaces, and associated ligaments.',
+    description: 'The largest internal organ and gland. It makes bile, processes and stores nutrients, and helps remove toxins from the blood. This male model highlights the liver lobes and surfaces.',
   },
   liverFemale: {
     label: 'Liver (female)',
     file: '/models/liver-female.glb',
-    description: 'The largest gland in the body. This female model shows the liver lobes, surfaces, and associated ligaments.',
+    description: 'The largest internal organ and gland. It makes bile, processes and stores nutrients, and helps remove toxins from the blood. This female model highlights the liver lobes and surfaces.',
   },
   lungs: {
     label: 'Lungs (female)',
     file: '/models/lungs.glb',
-    description: 'A pair of spongy organs where oxygen enters the blood and carbon dioxide is removed. This female model includes the bronchial tree.',
+    description: 'Two spongy organs where gas exchange occurs in tiny air sacs called alveoli: oxygen enters the blood and carbon dioxide leaves it. This female model includes the bronchial tree, which carries air to and from the alveoli.',
   },
   kidneys: {
     label: 'Kidneys',
     file: '/models/kidneys.glb',
-    description: 'A pair of bean-shaped organs that filter blood, remove waste, and regulate fluid, electrolytes, and blood pressure.',
+    description: 'Two bean-shaped organs whose nephrons filter blood and form urine. They remove wastes and excess acid, balance water and electrolytes, and help regulate blood pressure.',
   },
 };
 
@@ -82,7 +86,7 @@ const organIcons = {
 const partDefinitions = {
   aorta: {
     name: 'Aorta',
-    description: 'The largest artery in the body. It carries oxygen-rich blood from the left ventricle to the rest of the body.',
+    description: 'The body’s largest artery. It carries oxygen-rich blood from the left ventricle into systemic circulation.',
   },
   superiorVenaCava: {
     name: 'Superior vena cava',
@@ -94,28 +98,39 @@ const partDefinitions = {
   },
   pulmonaryArtery: {
     name: 'Pulmonary artery',
-    description: 'Carries oxygen-poor blood from the right ventricle to the lungs, where it picks up oxygen.',
+    description: 'Carries oxygen-poor blood from the right ventricle to the lungs. Its branches deliver blood to the lungs for gas exchange.',
   },
   rightAtrium: {
     name: 'Right atrium',
-    description: 'The upper-right chamber that receives oxygen-poor blood returning from the body before it moves into the right ventricle.',
+    description: 'The upper-right heart chamber that receives oxygen-poor blood from the body through the superior and inferior venae cavae and passes it to the right ventricle.',
   },
   leftAtrium: {
     name: 'Left atrium',
-    description: 'The upper-left chamber that receives oxygen-rich blood from the lungs through the pulmonary veins.',
+    description: 'The upper-left heart chamber that receives oxygen-rich blood from the lungs through the pulmonary veins and passes it to the left ventricle.',
   },
   rightVentricle: {
     name: 'Right ventricle',
-    description: 'The lower-right chamber that pumps oxygen-poor blood through the pulmonary artery toward the lungs.',
+    description: 'The lower-right heart chamber that pumps oxygen-poor blood through the pulmonary trunk and arteries to the lungs.',
   },
   leftVentricle: {
     name: 'Left ventricle',
-    description: 'The thick, muscular lower-left chamber that pumps oxygen-rich blood into the aorta and around the body.',
+    description: 'The thick, muscular lower-left heart chamber that pumps oxygen-rich blood through the aorta to the body.',
   },
   apex: {
     name: 'Apex',
     description: 'The pointed lower tip of the heart, formed mainly by the left ventricle.',
   },
+};
+
+const systemDescriptions = {
+  'Muscular system': 'Tissues that contract to produce movement, maintain posture, stabilize joints, and generate heat.',
+  'Digestive system': 'Organs that break down food, absorb nutrients and water, and eliminate undigested waste.',
+  'Lymphatic system': 'A network of vessels, nodes, and organs that returns tissue fluid to the blood and supports immune defense.',
+  'Nervous system': 'The brain, spinal cord, and nerves that coordinate sensation, movement, thought, and automatic body functions.',
+  'Skeletal system': 'The bones and supporting tissues that protect organs, support the body, and work with muscles to produce movement.',
+  'Urinary system': 'The kidneys, ureters, bladder, and urethra that filter blood, form urine, and remove it from the body.',
+  'Bronchial tree': 'The branching airways that conduct air from the trachea toward the alveoli, where gas exchange occurs.',
+  Diaphragm: 'The main muscle of breathing. It contracts and flattens to help draw air into the lungs.',
 };
 
 Object.entries(organDefinitions).forEach(([key, definition]) => {
@@ -228,7 +243,10 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
 controls.enablePan = false;
-controls.enableZoom = false;
+controls.enableZoom = true;
+controls.zoomSpeed = 0.75;
+controls.minDistance = 2.9;
+controls.maxDistance = 9.5;
 controls.minPolarAngle = Math.PI * 0.28;
 controls.maxPolarAngle = Math.PI * 0.72;
 
@@ -246,16 +264,31 @@ let displayedOrganKey = null;
 let requestedOrganKey = null;
 let selectionVersion = 0;
 let activeReveal = reducedMotion ? 1 : 0;
+let fittedDistance = 5.3;
+let activeAnnotation = null;
 let isInteracting = false;
 let pointerStart = null;
+let autoSwitchTimer = null;
+let preloadedOrgan = null;
+let preloadedOrganKey = null;
+let preloadedOrganPromise = null;
+let preloadVersion = 0;
+let modelTransition = null;
+
+const organKeys = Object.keys(organDefinitions);
+const autoSwitchDelay = 20000;
+const transitionDuration = reducedMotion ? 0.01 : 0.9;
 
 controls.addEventListener('start', () => {
   isInteracting = true;
+  if (displayedOrganKey && !modelTransition) scheduleAutoSwitch(displayedOrganKey);
 });
 
 controls.addEventListener('end', () => {
   isInteracting = false;
 });
+
+annotationClose.addEventListener('click', hidePart);
 
 function isFemaleMuscle(name) {
   return /muscle|deltoid|trapezius|intercostals|calf|upper_arm|back_muscles|adductors|gluteal|iliopsoas|rotator|shoulder|shin|abdominal|quadriceps|hamstrings|pelvic_floor/.test(name.toLowerCase());
@@ -297,6 +330,7 @@ function prepareModel(gltf, definition, key) {
 
   const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
   const preparedMaterials = new Set();
+  const materialDefaults = new Map();
   let textureCanvas = null;
   let textureContext = null;
   let textureFlipY = false;
@@ -319,6 +353,11 @@ function prepareModel(gltf, definition, key) {
     materials.forEach((material) => {
       if (preparedMaterials.has(material)) return;
       preparedMaterials.add(material);
+      materialDefaults.set(material, {
+        transparent: material.transparent,
+        opacity: material.opacity,
+        depthWrite: material.depthWrite,
+      });
 
       if (material.color) material.color.multiplyScalar(0.52);
       if ('metalness' in material) material.metalness = 0.48;
@@ -358,7 +397,7 @@ function prepareModel(gltf, definition, key) {
   model.name = definition.label;
   model.visible = false;
 
-  return { model, bounds, size, normalizedSize, textureCanvas, textureContext, textureFlipY };
+  return { model, bounds, size, normalizedSize, materialDefaults, textureCanvas, textureContext, textureFlipY };
 }
 
 function loadOrgan(key, definition) {
@@ -386,7 +425,6 @@ function disposeOrgan(organ) {
   const geometries = new Set();
   const materials = new Set();
   const textures = new Set();
-  const images = new Set();
 
   organ.model.traverse((object) => {
     if (!object.isMesh) return;
@@ -395,10 +433,7 @@ function disposeOrgan(organ) {
     objectMaterials.forEach((material) => {
       materials.add(material);
       Object.values(material).forEach((value) => {
-        if (value?.isTexture) {
-          textures.add(value);
-          if (value.image) images.add(value.image);
-        }
+        if (value?.isTexture) textures.add(value);
       });
     });
   });
@@ -408,7 +443,6 @@ function disposeOrgan(organ) {
   geometries.forEach((geometry) => geometry.dispose());
   materials.forEach((material) => material.dispose());
   textures.forEach((texture) => texture.dispose());
-  images.forEach((image) => image.close?.());
 }
 
 function setEmptyView() {
@@ -424,16 +458,19 @@ function resetView() {
   controls.reset();
 }
 
-function showOrgan(key, organ) {
-  if (activeOrgan && activeOrgan !== organ) disposeOrgan(activeOrgan);
-  organPivot.add(organ.model);
-  organ.model.visible = true;
-  activeOrgan = organ;
-  displayedOrganKey = key;
-  activeReveal = reducedMotion ? 1 : 0;
-  organPivot.visible = true;
-  resize();
+function getFittedDistance(organ) {
+  const width = Math.max(window.innerWidth, 1);
+  const height = Math.max(window.innerHeight, 1);
+  const aspect = width / height;
+  const mobile = width <= 600;
+  const halfFov = THREE.MathUtils.degToRad(camera.fov / 2);
+  const modelSize = organ?.normalizedSize || new THREE.Vector3(2.4, 2.4, 2.4);
+  const widthDistance = (modelSize.x * (mobile ? 1.85 : 1.15)) / aspect / (2 * Math.tan(halfFov));
+  const heightDistance = (modelSize.y * (mobile ? 1.18 : 1.12)) / (2 * Math.tan(halfFov));
+  return Math.max(5.3, widthDistance, heightDistance);
+}
 
+function updateCanvasLabel(key) {
   const definition = organDefinitions[key];
   renderer.domElement.setAttribute(
     'aria-label',
@@ -443,10 +480,202 @@ function showOrgan(key, organ) {
   );
 }
 
+function prepareOrganFade(organ) {
+  organ.materialDefaults.forEach((defaults, material) => {
+    if (!material.transparent || material.depthWrite) {
+      material.transparent = true;
+      material.depthWrite = false;
+      material.needsUpdate = true;
+    }
+  });
+}
+
+function setOrganOpacity(organ, opacity) {
+  organ.model.traverse((object) => {
+    if (!object.isMesh) return;
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    materials.forEach((material) => {
+      const defaults = organ.materialDefaults.get(material);
+      material.opacity = (defaults?.opacity ?? 1) * opacity;
+    });
+  });
+}
+
+function restoreOrganFade(organ) {
+  organ.materialDefaults.forEach((defaults, material) => {
+    if (
+      material.transparent !== defaults.transparent ||
+      material.depthWrite !== defaults.depthWrite ||
+      material.opacity !== defaults.opacity
+    ) {
+      material.transparent = defaults.transparent;
+      material.depthWrite = defaults.depthWrite;
+      material.opacity = defaults.opacity;
+      material.needsUpdate = true;
+    }
+  });
+}
+
+function getNextOrganKey(key) {
+  const index = organKeys.indexOf(key);
+  return organKeys[(index + 1) % organKeys.length];
+}
+
+function clearPreloadedOrgan() {
+  preloadVersion += 1;
+  preloadedOrganPromise = null;
+  preloadedOrganKey = null;
+  if (preloadedOrgan) {
+    disposeOrgan(preloadedOrgan);
+    preloadedOrgan = null;
+  }
+}
+
+function clearAutoSwitch() {
+  clearTimeout(autoSwitchTimer);
+  autoSwitchTimer = null;
+  clearPreloadedOrgan();
+}
+
+function preloadNextOrgan(currentKey) {
+  const nextKey = getNextOrganKey(currentKey);
+  if (preloadedOrganKey === nextKey && (preloadedOrgan || preloadedOrganPromise)) return;
+
+  clearPreloadedOrgan();
+  preloadedOrganKey = nextKey;
+  const version = preloadVersion;
+  preloadedOrganPromise = loadOrgan(nextKey, organDefinitions[nextKey])
+    .then((organ) => {
+      if (version !== preloadVersion || preloadedOrganKey !== nextKey) {
+        disposeOrgan(organ);
+        return null;
+      }
+      preloadedOrgan = organ;
+      return organ;
+    })
+    .catch(() => null);
+}
+
+function scheduleAutoSwitch(currentKey) {
+  clearTimeout(autoSwitchTimer);
+  preloadNextOrgan(currentKey);
+  autoSwitchTimer = setTimeout(() => {
+    autoSwitchTimer = null;
+    void autoSwitchToNext(currentKey);
+  }, autoSwitchDelay);
+}
+
+function cancelModelTransition() {
+  if (!modelTransition) return;
+  restoreOrganFade(modelTransition.incoming);
+  disposeOrgan(modelTransition.outgoing);
+  modelTransition = null;
+}
+
+function beginModelTransition(key, organ, version) {
+  const outgoing = activeOrgan;
+  if (!outgoing) {
+    showOrgan(key, organ);
+    return;
+  }
+
+  const startDistance = camera.position.distanceTo(controls.target);
+  const targetDistance = getFittedDistance(organ);
+  organPivot.add(organ.model);
+  organ.model.visible = true;
+  prepareOrganFade(outgoing);
+  prepareOrganFade(organ);
+  setOrganOpacity(outgoing, 1);
+  setOrganOpacity(organ, 0);
+  activeOrgan = organ;
+  displayedOrganKey = key;
+  activeReveal = 1;
+  modelTransition = {
+    outgoing,
+    incoming: organ,
+    version,
+    elapsed: 0,
+    startDistance,
+    targetDistance,
+  };
+  controls.minDistance = targetDistance * 0.55;
+  controls.maxDistance = targetDistance * 1.8;
+  updateCanvasLabel(key);
+  scheduleAutoSwitch(key);
+}
+
+function completeModelTransition() {
+  const { outgoing, incoming, targetDistance } = modelTransition;
+  restoreOrganFade(incoming);
+  disposeOrgan(outgoing);
+  fittedDistance = targetDistance;
+  controls.minDistance = targetDistance * 0.55;
+  controls.maxDistance = targetDistance * 1.8;
+  controls.update();
+  controls.saveState();
+  modelTransition = null;
+}
+
+async function autoSwitchToNext(currentKey) {
+  if (isInteracting) {
+    scheduleAutoSwitch(currentKey);
+    return;
+  }
+  if (modelTransition || requestedOrganKey !== currentKey) return;
+
+  const nextKey = getNextOrganKey(currentKey);
+  const version = ++selectionVersion;
+  requestedOrganKey = nextKey;
+  updateOrganCheckboxes(nextKey);
+  hidePart();
+
+  try {
+    let organ = null;
+    if (preloadedOrganKey === nextKey) {
+      organ = preloadedOrgan || await preloadedOrganPromise;
+    }
+    if (version !== selectionVersion || requestedOrganKey !== nextKey) return;
+    if (!organ) organ = await loadOrgan(nextKey, organDefinitions[nextKey]);
+    if (version !== selectionVersion || requestedOrganKey !== nextKey) {
+      if (organ && organ !== preloadedOrgan) disposeOrgan(organ);
+      return;
+    }
+
+    if (preloadedOrgan === organ) {
+      preloadedOrgan = null;
+      preloadedOrganKey = null;
+      preloadedOrganPromise = null;
+      preloadVersion += 1;
+    }
+    beginModelTransition(nextKey, organ, version);
+  } catch (error) {
+    if (version !== selectionVersion) return;
+    console.error(`Unable to load ${organDefinitions[nextKey].label}.`, error);
+    requestedOrganKey = currentKey;
+    updateOrganCheckboxes(currentKey);
+    scheduleAutoSwitch(currentKey);
+  }
+}
+
+function showOrgan(key, organ) {
+  if (activeOrgan && activeOrgan !== organ) disposeOrgan(activeOrgan);
+  organPivot.add(organ.model);
+  organ.model.visible = true;
+  activeOrgan = organ;
+  displayedOrganKey = key;
+  activeReveal = reducedMotion ? 1 : 0;
+  organPivot.visible = true;
+  resize();
+  updateCanvasLabel(key);
+  scheduleAutoSwitch(key);
+}
+
 async function selectOrgan(key) {
   const definition = organDefinitions[key];
   if (!definition) return;
 
+  clearAutoSwitch();
+  cancelModelTransition();
   const previousKey = displayedOrganKey;
   const version = ++selectionVersion;
   requestedOrganKey = key;
@@ -467,10 +696,13 @@ async function selectOrgan(key) {
     requestedOrganKey = previousKey;
     updateOrganCheckboxes(previousKey);
     if (!previousKey) setEmptyView();
+    else scheduleAutoSwitch(previousKey);
   }
 }
 
 function clearOrgan() {
+  clearAutoSwitch();
+  cancelModelTransition();
   selectionVersion += 1;
   requestedOrganKey = null;
   updateOrganCheckboxes(null);
@@ -564,7 +796,7 @@ function formatPartName(name) {
   if (systemName) return systemName;
 
   if (
-    /^(mesh[-_]\d+|scene|root(?:[._]\d+)*|rootnode(?:[._]\d+)*|sketchfab_model(?:[._]\d+)*|gltf_scenerootnode(?:[._]\d+)*|object_\d+(?:[._]\d+)*|polygon_reduction.*|group\d+(?:[._]\d+)*|sphere(?:[._]\d+)*|stingraypbs.*|default|material|.*kidney_tex.*|.*brain_mri.*|kidney.*group.*)$/i.test(name) ||
+    /^(mesh[-_]\d+|scene|root(?:[._]\d+)*|rootnode(?:[._]\d+)*|sketchfab_model(?:[._]\d+)*|gltf_scenerootnode(?:[._]\d+)*|object_\d+(?:[._]\d+)*|polygon_reduction.*|group\d+(?:[._]\d+)*|sphere(?:[._]\d+)*|stingraypbs.*|default|material|.*kidney_tex.*|.*brain_mri.*|kidney.*group.*|final.*stl.*cleaner.*merger.*)$/i.test(name) ||
     /^[a-f0-9]{24,}(?:\.fbx)?(?:[._]\d+)*$/i.test(name)
   ) {
     return null;
@@ -584,10 +816,11 @@ function formatPartName(name) {
     .trim();
 
   if (!formatted || /^3d-vh-f-lung$/i.test(formatted)) return null;
-  return formatted.replace(/\b\w/g, (character) => character.toUpperCase());
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
 
 function getClickedPartName(hit) {
+  if (displayedOrganKey === 'brain') return organDefinitions.brain.label;
   if (hit.object.userData.partName) return hit.object.userData.partName;
   let object = hit.object;
   while (object && object !== activeOrgan.model) {
@@ -614,14 +847,99 @@ function getIntersection(clientX, clientY) {
   }) || null;
 }
 
-function showInfo(name, description) {
+function updateAnnotation() {
+  if (!activeAnnotation || !activeOrgan || partInfo.hidden) return;
+
+  activeOrgan.model.updateWorldMatrix(true, false);
+  camera.updateMatrixWorld();
+  const worldPoint = activeOrgan.model.localToWorld(activeAnnotation.point.clone());
+  const projected = worldPoint.project(camera);
+
+  if (
+    projected.z < -1 ||
+    projected.z > 1 ||
+    Math.abs(projected.x) > 1.15 ||
+    Math.abs(projected.y) > 1.15
+  ) {
+    annotationLayer.hidden = true;
+    return;
+  }
+
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const anchorX = (projected.x * 0.5 + 0.5) * width;
+  const anchorY = (-projected.y * 0.5 + 0.5) * height;
+  const cardWidth = partInfo.offsetWidth;
+  const cardHeight = partInfo.offsetHeight;
+  if (!cardWidth || !cardHeight) return;
+
+  annotationLayer.hidden = false;
+  const gap = width <= 600 ? 68 : 104;
+  const margin = 12;
+  let placeRight = anchorX + gap + cardWidth < width - margin;
+  if (!placeRight && anchorX - gap - cardWidth < margin) placeRight = true;
+
+  const cardX = THREE.MathUtils.clamp(
+    placeRight ? anchorX + gap : anchorX - gap - cardWidth,
+    margin,
+    Math.max(margin, width - cardWidth - margin),
+  );
+  let cardY = THREE.MathUtils.clamp(
+    anchorY - cardHeight / 2,
+    margin,
+    Math.max(margin, height - cardHeight - margin),
+  );
+
+  const selectorBounds = organList.closest('.organ-selector').getBoundingClientRect();
+  const overlapsSelector =
+    cardX < selectorBounds.right &&
+    cardX + cardWidth > selectorBounds.left &&
+    cardY < selectorBounds.bottom &&
+    cardY + cardHeight > selectorBounds.top;
+
+  if (overlapsSelector) {
+    const belowSelector = selectorBounds.bottom + margin;
+    const aboveSelector = selectorBounds.top - cardHeight - margin;
+    if (belowSelector + cardHeight < height - margin) cardY = belowSelector;
+    else if (aboveSelector > margin) cardY = aboveSelector;
+  }
+
+  const connectX = cardX > anchorX ? cardX : cardX + cardWidth;
+  const connectY = THREE.MathUtils.clamp(
+    anchorY,
+    cardY + 18,
+    cardY + cardHeight - 18,
+  );
+  const rise = Math.min(width <= 600 ? 36 : 52, Math.max(24, cardHeight * 0.28));
+  const routeY = Math.max(0, anchorY - rise);
+  const direction = connectX >= anchorX ? 1 : -1;
+  const slant = Math.min(width <= 600 ? 22 : 30, Math.abs(connectX - anchorX) * 0.35);
+  const leadX = anchorX + direction * slant;
+
+  partInfo.style.left = `${cardX}px`;
+  partInfo.style.top = `${cardY}px`;
+  annotationPath.setAttribute(
+    'd',
+    `M ${anchorX} ${anchorY} L ${leadX} ${routeY} L ${connectX} ${routeY} L ${connectX} ${connectY}`,
+  );
+  annotationPoint.setAttribute('cx', String(anchorX));
+  annotationPoint.setAttribute('cy', String(anchorY));
+}
+
+function showInfo(name, description, worldPoint) {
   partName.textContent = name;
   partDescription.textContent = description;
+  activeAnnotation = { point: activeOrgan.model.worldToLocal(worldPoint.clone()) };
   partInfo.hidden = false;
   partInfo.setAttribute('aria-hidden', 'false');
+  annotationLayer.hidden = false;
+  updateAnnotation();
 }
 
 function hidePart() {
+  activeAnnotation = null;
+  annotationLayer.hidden = true;
+  annotationPath.setAttribute('d', '');
   partInfo.hidden = true;
   partInfo.setAttribute('aria-hidden', 'true');
 }
@@ -640,10 +958,11 @@ function selectPartAt(clientX, clientY) {
 
   if (displayedOrganKey === 'heart') {
     const part = partDefinitions[classifyHeartPart(hit)];
-    showInfo(part.name, part.description);
+    showInfo(part.name, part.description, hit.point);
   } else {
-    const definition = organDefinitions[displayedOrganKey];
-    showInfo(getClickedPartName(hit), definition.description);
+    const name = getClickedPartName(hit);
+    const description = systemDescriptions[name] || organDefinitions[displayedOrganKey].description;
+    showInfo(name, description, hit.point);
   }
 }
 
@@ -678,14 +997,25 @@ function resize() {
   const heightDistance = (modelSize.y * (mobile ? 1.18 : 1.12)) / (2 * Math.tan(halfFov));
   const distance = Math.max(5.3, widthDistance, heightDistance);
   const viewShift = mobile ? Math.min(0.22, 86 / width) : 0.035;
+  const zoomRatio = activeOrgan
+    ? THREE.MathUtils.clamp(camera.position.distanceTo(controls.target) / fittedDistance, 0.55, 1.8)
+    : 1;
 
   camera.aspect = aspect;
-  camera.position.normalize().multiplyScalar(distance);
+  camera.position
+    .sub(controls.target)
+    .normalize()
+    .multiplyScalar(distance * zoomRatio)
+    .add(controls.target);
   camera.setViewOffset(width, height, width * viewShift, 0, width, height);
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
+  fittedDistance = distance;
+  controls.minDistance = distance * 0.55;
+  controls.maxDistance = distance * 1.8;
   controls.update();
   controls.saveState();
+  updateAnnotation();
 }
 
 window.addEventListener('resize', resize);
@@ -707,12 +1037,32 @@ function animate() {
 
   organPivot.scale.setScalar((0.88 + easedReveal * 0.12) * pulse);
 
+  if (modelTransition) {
+    modelTransition.elapsed += delta;
+    const progress = Math.min(modelTransition.elapsed / transitionDuration, 1);
+    const eased = progress * progress * (3 - 2 * progress);
+    setOrganOpacity(modelTransition.outgoing, 1 - eased);
+    setOrganOpacity(modelTransition.incoming, eased);
+    const distance = THREE.MathUtils.lerp(
+      modelTransition.startDistance,
+      modelTransition.targetDistance,
+      eased,
+    );
+    camera.position
+      .sub(controls.target)
+      .normalize()
+      .multiplyScalar(distance)
+      .add(controls.target);
+    if (progress >= 1) completeModelTransition();
+  }
+
   if (!reducedMotion && activeOrgan && partInfo.hidden && !isInteracting) {
     organPivot.rotation.y += delta * 0.12;
     organPivot.position.y = Math.sin(elapsed * 0.9) * 0.035;
   }
 
   controls.update(delta);
+  updateAnnotation();
   renderer.render(scene, camera);
 }
 

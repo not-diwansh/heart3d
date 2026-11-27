@@ -25,10 +25,21 @@
       <div id="organ-list" class="organ-list" role="group" aria-label="Display one organ at a time"></div>
     </aside>
 
-    <aside id="part-info" class="part-info" aria-live="polite" aria-hidden="true" hidden>
-      <h2 id="part-name"></h2>
-      <p id="part-description"></p>
-    </aside>
+    <div id="annotation-layer" class="annotation-layer" hidden>
+      <svg class="annotation-leader" aria-hidden="true">
+        <path id="annotation-path" d="" />
+        <circle id="annotation-point" r="3.5" cx="0" cy="0" />
+      </svg>
+      <aside id="part-info" class="part-info" aria-live="polite" aria-hidden="true" hidden>
+        <button id="annotation-close" class="annotation-close" type="button" aria-label="Close annotation">
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path d="m5 5 10 10M15 5 5 15" />
+          </svg>
+        </button>
+        <h2 id="part-name"></h2>
+        <p id="part-description"></p>
+      </aside>
+    </div>
 
     <script type="module" src="/src/main.js"></script>
   </body>
