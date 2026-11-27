@@ -59,9 +59,9 @@ const organDefinitions = {
     description: 'The largest internal organ and gland. It makes bile, processes and stores nutrients, and helps remove toxins from the blood. This female model highlights the liver lobes and surfaces.',
   },
   lungs: {
-    label: 'Lungs (female)',
+    label: 'Lungs',
     file: '/models/lungs.glb',
-    description: 'Two spongy organs where gas exchange occurs in tiny air sacs called alveoli: oxygen enters the blood and carbon dioxide leaves it. This female model includes the bronchial tree, which carries air to and from the alveoli.',
+    description: 'Two spongy organs, common to male and female anatomy, where gas exchange occurs in the alveoli. This model shows both lungs, their lobes and bronchopulmonary segments, and the bronchial tree.',
   },
   kidneys: {
     label: 'Kidneys',
@@ -117,6 +117,18 @@ const systemDescriptions = {
   'Skeletal system': 'The bones and supporting tissues that protect organs, support the body, and work with muscles to produce movement.',
   'Urinary system': 'The kidneys, ureters, bladder, and urethra that filter blood, form urine, and remove it from the body.',
   'Bronchial tree': 'The branching airways that conduct air from the trachea toward the alveoli, where gas exchange occurs.',
+  'Left bronchi': 'The left main bronchus and its branches carry air into the left lung and divide toward its lobes and segments.',
+  'Right bronchi': 'The right main bronchus and its branches carry air into the right lung and divide toward its three lobes.',
+  'Bronchial cartilage': 'Supportive cartilage in the bronchial walls that helps keep the airways open during breathing.',
+  'Left lung': 'The left lung has two lobes and participates in gas exchange; its cardiac notch leaves space for the heart.',
+  'Right lung': 'The right lung has three lobes and participates in gas exchange, with the bronchial tree branching through its lobes.',
+  'Left upper lobe': 'The upper division of the left lung, including the lingula, supplied by branches of the left bronchial tree.',
+  'Left lower lobe': 'The lower division of the left lung, supplied by the left lower lobar bronchus and its segmental branches.',
+  'Right upper lobe': 'The uppermost of the three right lung lobes, supplied by the right superior lobar bronchus.',
+  'Right middle lobe': 'The middle of the three right lung lobes, supplied by the right middle lobar bronchus.',
+  'Right lower lobe': 'The largest right lung lobe, supplied by the right lower lobar bronchus and its segmental branches.',
+  'Left hilum': 'The medial region of the left lung where the bronchus, blood vessels, nerves, and lymphatic vessels enter or leave.',
+  'Right hilum': 'The medial region of the right lung where the bronchus, blood vessels, nerves, and lymphatic vessels enter or leave.',
   Diaphragm: 'The main muscle of breathing. It contracts and flattens to help draw air into the lungs.',
 };
 
@@ -299,6 +311,43 @@ function getFemaleAnatomyColor(name) {
   return 0xc1b49c;
 }
 
+function getLungPartName(name) {
+  const part = name.toLowerCase();
+  const left = /left|lingula|(?:^|_)l(?:_|$)/.test(part);
+  const right = /right|(?:^|_)r(?:_|$)/.test(part);
+
+  if (/cartilage/.test(part)) return 'Bronchial cartilage';
+  if (/bronchi|bronchus|tracheobronchial/.test(part) && !/bronchopulmonary_segment/.test(part)) {
+    if (left) return 'Left bronchi';
+    if (right) return 'Right bronchi';
+    return 'Bronchial tree';
+  }
+  if (/hilum/.test(part)) {
+    if (left) return 'Left hilum';
+    if (right) return 'Right hilum';
+  }
+  if (left) {
+    if (/lower_lobe|basal|(?:left|right|_[lr])_superior_bronchopulmonary/.test(part)) return 'Left lower lobe';
+    if (/upper_lobe|lingula|apical|anterior_bronchopulmonary|posterior_bronchopulmonary/.test(part)) return 'Left upper lobe';
+    return 'Left lung';
+  }
+  if (right) {
+    if (/lower_lobe|basal|(?:left|right|_[lr])_superior_bronchopulmonary/.test(part)) return 'Right lower lobe';
+    if (/middle_lobe|lateral_bronchopulmonary|medial_bronchopulmonary/.test(part)) return 'Right middle lobe';
+    if (/upper_lobe|apical|anterior_bronchopulmonary|posterior_bronchopulmonary/.test(part)) return 'Right upper lobe';
+    return 'Right lung';
+  }
+  return 'Lungs';
+}
+
+function getLungTissueColor(name) {
+  const part = name.toLowerCase();
+  if (/lower_lobe|basal|(?:left|right|_[lr])_superior_bronchopulmonary/.test(part)) return 0xa9556b;
+  if (/middle_lobe|lateral_bronchopulmonary|medial_bronchopulmonary/.test(part)) return 0xd98f9b;
+  if (/hilum/.test(part)) return 0xb9697a;
+  return 0xc97b8b;
+}
+
 function prepareModel(gltf, definition, key) {
   const model = gltf.scene;
   model.updateMatrixWorld(true);
@@ -337,21 +386,57 @@ function prepareModel(gltf, definition, key) {
       object.material.color.set(getFemaleAnatomyColor(object.name));
     }
 
+    if (key === 'lungs') {
+      object.userData.partName = getLungPartName(object.name);
+      object.material = object.material.clone();
+    }
+
     const materials = Array.isArray(object.material) ? object.material : [object.material];
     materials.forEach((material) => {
       if (preparedMaterials.has(material)) return;
       preparedMaterials.add(material);
-      materialDefaults.set(material, {
-        transparent: material.transparent,
-        opacity: material.opacity,
-        depthWrite: material.depthWrite,
-      });
 
       if (material.color) material.color.multiplyScalar(0.52);
       if ('metalness' in material) material.metalness = 0.48;
       if ('roughness' in material) material.roughness = 0.2;
       if ('envMapIntensity' in material) material.envMapIntensity = 1.8;
       if (material.map) material.map.colorSpace = THREE.SRGBColorSpace;
+
+      if (key === 'brain') {
+        material.color?.set(0x784c53);
+        if ('metalness' in material) material.metalness = 0.06;
+        if ('roughness' in material) material.roughness = 0.64;
+        if ('envMapIntensity' in material) material.envMapIntensity = 0.65;
+      }
+
+      if (key === 'lungs') {
+        const part = object.name.toLowerCase().replace(/segmennt/g, 'segment').replace(/segm$/, 'segment');
+        if (/bronchopulmonary_segment|lung_(?:upper|middle|lower)_lobe|hilum/.test(part)) {
+          material.color?.set(getLungTissueColor(object.name));
+          material.transparent = true;
+          material.opacity = /lower_lobe|basal|(?:left|right|_[lr])_superior_bronchopulmonary/.test(part) ? 0.24 : /middle_lobe|lateral_bronchopulmonary|medial_bronchopulmonary/.test(part) ? 0.2 : 0.14;
+          material.depthWrite = false;
+          if ('metalness' in material) material.metalness = 0.02;
+          if ('roughness' in material) material.roughness = 0.74;
+          if ('envMapIntensity' in material) material.envMapIntensity = 0.4;
+        } else if (/cartilage/.test(part)) {
+          material.color?.set(0xa9c5ca);
+          if ('metalness' in material) material.metalness = 0.04;
+          if ('roughness' in material) material.roughness = 0.46;
+          if ('envMapIntensity' in material) material.envMapIntensity = 0.6;
+        } else if (/bronchi|bronchus|tracheobronchial/.test(part)) {
+          material.color?.set(0xe2b18c);
+          if ('metalness' in material) material.metalness = 0.03;
+          if ('roughness' in material) material.roughness = 0.42;
+          if ('envMapIntensity' in material) material.envMapIntensity = 0.55;
+        }
+      }
+
+      materialDefaults.set(material, {
+        transparent: material.transparent,
+        opacity: material.opacity,
+        depthWrite: material.depthWrite,
+      });
 
       Object.values(material).forEach((value) => {
         if (value?.isTexture) value.anisotropy = maxAnisotropy;
@@ -825,14 +910,19 @@ function getIntersection(clientX, clientY) {
   pointer.x = ((clientX - bounds.left) / bounds.width) * 2 - 1;
   pointer.y = -((clientY - bounds.top) / bounds.height) * 2 + 1;
   raycaster.setFromCamera(pointer, camera);
-  return raycaster.intersectObject(activeOrgan.model, true).find((hit) => {
+  const hits = raycaster.intersectObject(activeOrgan.model, true).filter((hit) => {
     let object = hit.object;
     while (object) {
       if (!object.visible) return false;
       object = object.parent;
     }
     return true;
-  }) || null;
+  });
+  if (displayedOrganKey === 'lungs') {
+    const airwayHit = hits.find((hit) => /cartilage|bronchi|bronchus/i.test(hit.object.name));
+    if (airwayHit) return airwayHit;
+  }
+  return hits[0] || null;
 }
 
 function updateAnnotation() {
