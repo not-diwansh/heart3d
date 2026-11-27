@@ -62,7 +62,7 @@ body {
 }
 
 .fullscreen-toggle:focus-visible,
-.organ-option input:focus-visible + .checkbox-mark {
+.organ-option input:focus-visible + .organ-photo {
   outline: 2px solid rgba(255, 255, 255, 0.75);
   outline-offset: 3px;
 }
@@ -149,58 +149,27 @@ body {
   opacity: 0;
 }
 
-.organ-icon {
-  display: grid;
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
-  color: #78736e;
-  place-items: center;
-  transition: color 150ms ease;
-}
-
-.organ-icon svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.5;
-}
-
-.organ-option:hover .organ-icon,
-.organ-option:has(input:checked) .organ-icon {
-  color: #c8c1ba;
-}
-
-.checkbox-mark {
-  position: relative;
+.organ-photo {
   display: block;
-  width: 15px;
-  height: 15px;
-  flex: 0 0 15px;
-  border: 1px solid #5e5a56;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
-  transition: border-color 150ms ease, background 150ms ease;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
+  background: #080808;
+  object-fit: cover;
+  filter: brightness(0.82) saturate(0.85);
+  transition: border-color 150ms ease, filter 150ms ease, box-shadow 150ms ease;
 }
 
-.organ-option input:checked + .checkbox-mark {
-  border-color: #d6d0c9;
-  background: #d6d0c9;
+.organ-option:hover .organ-photo,
+.organ-option:has(input:checked) .organ-photo {
+  border-color: rgba(242, 139, 151, 0.58);
+  filter: brightness(1) saturate(1);
 }
 
-.organ-option input:checked + .checkbox-mark::after {
-  position: absolute;
-  top: 2px;
-  left: 4px;
-  width: 4px;
-  height: 7px;
-  border: solid #181818;
-  border-width: 0 1.5px 1.5px 0;
-  content: '';
-  transform: rotate(45deg);
+.organ-option:has(input:checked) .organ-photo {
+  box-shadow: 0 0 0 1px rgba(242, 139, 151, 0.16);
 }
 
 .annotation-layer {
@@ -341,14 +310,11 @@ body {
     font-size: 0.8rem;
   }
 
-  .organ-icon,
-  .organ-icon svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  .organ-icon {
-    flex-basis: 14px;
+  .organ-photo {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    border-radius: 6px;
   }
 
   .part-info {
@@ -381,8 +347,7 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .fullscreen-toggle,
   .organ-option,
-  .organ-icon,
-  .checkbox-mark {
+  .organ-photo {
     transition: none;
   }
 

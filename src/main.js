@@ -70,19 +70,6 @@ const organDefinitions = {
   },
 };
 
-const organIcons = {
-  heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/>',
-  maleAnatomy: '<circle cx="9" cy="4.5" r="2"/><path d="M5 11c1.2-1.5 2.4-2.2 4-2.2s2.8.7 4 2.2l1.5 5-2 1-1-3v4l2 5M9 9v7l-2 5M9 13l2 5M16 7h5M18.5 4.5v5"/>',
-  femaleAnatomy: '<circle cx="9" cy="4.5" r="2"/><path d="M5 11c1.2-1.5 2.4-2.2 4-2.2s2.8.7 4 2.2l1.5 5-2 1-1-3v4l2 5M9 9v7l-2 5M9 13l2 5"/><circle cx="18" cy="9" r="3"/><path d="M18 6v6M15 9h6"/>',
-  brain: '<path d="M9.5 4.5A2.5 2.5 0 0 0 5 6a2.5 2.5 0 0 0-1 4.8A3 3 0 0 0 5 16a2.5 2.5 0 0 0 4.5 1.5V4.5ZM14.5 4.5A2.5 2.5 0 0 1 19 6a2.5 2.5 0 0 1 1 4.8 3 3 0 0 1-1 5.2 2.5 2.5 0 0 1-4.5 1.5V4.5Z"/><path d="M8 9h4M12 15h4"/>',
-  skull: '<path d="M5 11a7 7 0 0 1 14 0v4l-2 1v3H7v-3l-2-1Z"/><circle cx="9" cy="11" r="1.5"/><circle cx="15" cy="11" r="1.5"/><path d="m10 16 2-2 2 2"/>',
-  stomach: '<path d="M9 3v5c0 2-2 3-3.5 5S4 18 7 20c3 2 7 .5 9-2s3-5 1-7-4-1-4-3V3"/><path d="M9 8h5"/>',
-  liverMale: '<path d="M4 8c2-3 7-4 11-2 3 1 5 3 5 6 0 3-3 5-7 5-3 0-5-2-8-2-2 0-3-3-1-7Z"/><path d="M13 6c0 3 1 6 1 9"/>',
-  liverFemale: '<path d="M4 8c2-3 7-4 11-2 3 1 5 3 5 6 0 3-3 5-7 5-3 0-5-2-8-2-2 0-3-3-1-7Z"/><path d="M13 6c0 3 1 6 1 9"/>',
-  lungs: '<path d="M12 3v8M9 7c-2-2-5 0-6 4-1 4-1 8 1 9 2 1 5-1 5-4V7ZM15 7c2-2 5 0 6 4 1 4 1 8-1 9-2 1-5-1-5-4V7Z"/>',
-  kidneys: '<path d="M8 5C5 4 3 7 3 11s1 7 4 7c3 0 4-3 3-6s-1-6-2-7ZM16 5c3-1 5 2 5 6s-1 7-4 7c-3 0-4-3-3-6s1-6 2-7Z"/>',
-};
-
 const partDefinitions = {
   aorta: {
     name: 'Aorta',
@@ -138,24 +125,24 @@ Object.entries(organDefinitions).forEach(([key, definition]) => {
   label.className = 'organ-option';
 
   const input = document.createElement('input');
-  input.type = 'checkbox';
+  input.type = 'radio';
+  input.name = 'organ';
   input.value = key;
   input.checked = key === 'heart';
 
-  const mark = document.createElement('span');
-  mark.className = 'checkbox-mark';
-  mark.setAttribute('aria-hidden', 'true');
-
-  const icon = document.createElement('span');
-  icon.className = 'organ-icon';
-  icon.setAttribute('aria-hidden', 'true');
-  icon.innerHTML = `<svg viewBox="0 0 24 24">${organIcons[key]}</svg>`;
+  const photo = document.createElement('img');
+  photo.className = 'organ-photo';
+  photo.src = `/thumbnails/${key}.webp`;
+  photo.alt = '';
+  photo.width = 28;
+  photo.height = 28;
+  photo.decoding = 'async';
 
   const text = document.createElement('span');
   text.className = 'organ-name';
   text.textContent = definition.label;
 
-  label.append(input, mark, icon, text);
+  label.append(input, photo, text);
   organList.append(label);
 });
 
@@ -415,7 +402,7 @@ function loadOrgan(key, definition) {
   return request;
 }
 
-function updateOrganCheckboxes(key) {
+function updateOrganSelection(key) {
   organList.querySelectorAll('input').forEach((input) => {
     input.checked = input.value === key;
   });
@@ -627,7 +614,7 @@ async function autoSwitchToNext(currentKey) {
   const nextKey = getNextOrganKey(currentKey);
   const version = ++selectionVersion;
   requestedOrganKey = nextKey;
-  updateOrganCheckboxes(nextKey);
+  updateOrganSelection(nextKey);
   hidePart();
 
   try {
@@ -653,7 +640,7 @@ async function autoSwitchToNext(currentKey) {
     if (version !== selectionVersion) return;
     console.error(`Unable to load ${organDefinitions[nextKey].label}.`, error);
     requestedOrganKey = currentKey;
-    updateOrganCheckboxes(currentKey);
+    updateOrganSelection(currentKey);
     scheduleAutoSwitch(currentKey);
   }
 }
@@ -680,7 +667,7 @@ async function selectOrgan(key) {
   const previousKey = displayedOrganKey;
   const version = ++selectionVersion;
   requestedOrganKey = key;
-  updateOrganCheckboxes(key);
+  updateOrganSelection(key);
   hidePart();
 
   try {
@@ -695,7 +682,7 @@ async function selectOrgan(key) {
     if (version !== selectionVersion) return;
     console.error(`Unable to load ${definition.label}.`, error);
     requestedOrganKey = previousKey;
-    updateOrganCheckboxes(previousKey);
+    updateOrganSelection(previousKey);
     if (!previousKey) setEmptyView();
     else scheduleAutoSwitch(previousKey);
   }
@@ -706,7 +693,7 @@ function clearOrgan() {
   cancelModelTransition();
   selectionVersion += 1;
   requestedOrganKey = null;
-  updateOrganCheckboxes(null);
+  updateOrganSelection(null);
   setEmptyView();
   hidePart();
 }
