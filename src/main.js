@@ -242,13 +242,14 @@ scene.add(rimLight);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
-controls.enablePan = false;
+controls.enablePan = true;
+controls.screenSpacePanning = true;
 controls.enableZoom = true;
 controls.zoomSpeed = 0.75;
 controls.minDistance = 2.9;
 controls.maxDistance = 9.5;
-controls.minPolarAngle = Math.PI * 0.28;
-controls.maxPolarAngle = Math.PI * 0.72;
+controls.minPolarAngle = 0;
+controls.maxPolarAngle = Math.PI;
 
 const organPivot = new THREE.Group();
 organPivot.visible = false;
@@ -1056,7 +1057,7 @@ function animate() {
     if (progress >= 1) completeModelTransition();
   }
 
-  if (!reducedMotion && activeOrgan && !isInteracting) {
+  if (activeOrgan && !isInteracting) {
     organPivot.rotation.y += delta * 0.08;
     organPivot.position.y = Math.sin(elapsed * 0.9) * 0.035;
   }
